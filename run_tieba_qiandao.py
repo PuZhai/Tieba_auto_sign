@@ -6,7 +6,6 @@ import time
 import requests
 
 # ========== 配置区 ==========
-SEND_KEY = "SCT376305T7EO54ypmF8wh7ONOfy4JvBZ5"
 PAGE_LOAD_TIMEOUT = 2      # 页面加载等待（秒）
 ELEMENT_TIMEOUT = 2        # 元素加载等待（秒）
 CLICK_WAIT = 1             # 点击后等待（秒）
@@ -320,9 +319,8 @@ if __name__ == "__main__":
     print(f"   📊 总计：{total} 个")
     print("=" * 50)
 
-    send_key = SEND_KEY
-    if not send_key and "SendKey" in os.environ:
-        send_key = os.environ["SendKey"]
+
+    send_key = os.environ["SendKey"]
     
     if send_key:
         api = f'https://sc.ftqq.com/{send_key}.send'
