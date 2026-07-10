@@ -151,36 +151,26 @@ def get_all_tieba_list(page):
         print(f"  📄 正在获取第 {page_num} 页...")
         page.get(f"https://tieba.baidu.com/i/i/forum?&pn={page_num}")
         page._wait_loaded(PAGE_LOAD_TIMEOUT)
-        
-        # 检测验证码
-        if "验证" in page.html or "安全" in page.html:
-            print("  ⚠️ 检测到验证码页面，暂停 30 秒后重试...")
-            time.sleep(30)
-            continue
-        
+         
         # 获取当前页的贴吧
-        for i in range(2, 22):
-            try:
-                element = page.ele(
-                    f'xpath://*[@id="like_pagelet"]/div[1]/div[1]/table/tbody/tr[{i}]/td[1]/a/@href'
-                )
-                if element:
-                    tieba_url = element.attr("href")
-                    name = element.attr("title")
-                    if tieba_url and name:
-                        if not tieba_url.startswith('http'):
-                            tieba_url = 'https://tieba.baidu.com' + tieba_url
-                        tieba_list.append((tieba_url, name))
-            except:
-                break
-        
-        # 检查是否有下一页
-        try:
-            next_btn = page.ele('xpath://*[contains(text(), "下一页")]')
-            if not next_btn:
-                print(f"  📄 没有下一页了，结束获取")
-                break
-        except:
+        rows = page.eles('xpath://*[@id="like_pagelet"]//table/tbody/tr')
+        if rows and len(rows) > 1:  # 有数据
+            for row in rows[1:]:  # 跳过表头
+                try:
+                    link = row.ele('xpath:.//td[1]/a')
+                    if link:
+                        tieba_url = link.attr("href")
+                        name = link.attr("title") or link.text
+                        if tieba_url and name:
+                            if not tieba_url.startswith('http'):
+                                tieba_url = 'https://tieba.baidu.com' + tieba_url
+                            tieba_list.append((tieba_url, name))
+                except:
+                    continue
+        # 检查是否有下一页（优化检测）
+        next_btn = page.ele('xpath://a[contains(text(), "下一页") and not(contains(@class, "disabled"))]')
+        if not next_btn:
+            print(f"  📄 没有下一页了，结束获取")
             break
     
     print(f"📊 共获取 {len(tieba_list)} 个贴吧")
@@ -267,9 +257,6 @@ if __name__ == "__main__":
                 print(f"🔄 {name}吧：尝试签到...")
                 if click_sign_button(page):
                     time.sleep(CLICK_WAIT)
-                    page.refresh()
-                    page._wait_loaded(PAGE_LOAD_TIMEOUT)
-                    
                     new_status = check_sign_status(page)
                     if new_status == 'signed':
                         level, exp = get_level_exp(page)
@@ -320,7 +307,7 @@ if __name__ == "__main__":
     print("=" * 50)
 
 
-    send_key = os.environ["SendKey"]
+    send_key = os.environ["SENDKEY"]
     
     if send_key:
         api = f'https://sc.ftqq.com/{send_key}.send'
