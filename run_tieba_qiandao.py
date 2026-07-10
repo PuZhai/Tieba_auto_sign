@@ -307,7 +307,7 @@ if __name__ == "__main__":
     print("=" * 50)
 
 
-    send_key = os.environ.get("SENDKEY") 
+    send_key = os.environ.get("SENDKEY") or os.environ.get("SendKey") or os.environ.get("sendkey")
     
     if send_key:
         api = f'https://sc.ftqq.com/{send_key}.send'
